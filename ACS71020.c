@@ -1,6 +1,11 @@
 #include<ACS71020.h>
 #include<SPI.h>
 
+
+// Static Function Declaration
+static void ConnectbySPI();
+static void DisconnectbySPI();
+static float convertToDecimal(long n); 
 /********************************************************************
  * @fn          getvalue(value_type typ)
  *
@@ -21,7 +26,7 @@ float getvalue(value_type typ){
         */
   case irms:
         ConnectbySPI();
-        temp = SPI.transfer(Vrms_Irms_address);
+        temp = SPI.transfer(VRMS_IRMS_ADDRESS);
         temp = temp >> 16;
         register_val = convertToDecimal(temp);
 
@@ -34,7 +39,7 @@ float getvalue(value_type typ){
         */ 
   case vrms:
         ConnectbySPI();
-        temp = SPI.transfer(Vrms_Irms_address);
+        temp = SPI.transfer(VRMS_IRMS_ADDRESS);
         temp = temp << 16;
         register_val = convertToDecimal(temp);
 
@@ -47,7 +52,7 @@ float getvalue(value_type typ){
         */ 
   case pactive:
         ConnectbySPI();
-        temp = SPI.transfer(pactive);
+        temp = SPI.transfer(PACTIVE);
         if(temp/100000000000000000 == 1){
         /*To see if value is positive or negative value is divided by 10^16 as output is 17bit long
          Range of Active power is -2 : ~2
@@ -66,7 +71,7 @@ float getvalue(value_type typ){
      */
   case papparant:
         ConnectbySPI();
-        temp = SPI.transfer(papparant);
+        temp = SPI.transfer(PAPPARANT);
         register_val = convertToDecimal(temp);
         
         register_val = temp*Imax*Vmax;
@@ -78,7 +83,7 @@ float getvalue(value_type typ){
       */
   case preactive:
         ConnectbySPI();
-        temp = SPI.transfer(preactive);
+        temp = SPI.transfer(PREACTIVE);
         register_val = convertToDecimal(temp);
         register_val = temp*Imax*Vmax;
         DisconnectbySPI();
@@ -89,7 +94,7 @@ float getvalue(value_type typ){
       */
   case pfactor:
         ConnectbySPI();
-        temp = SPI.transfer(pfactor);
+        temp = SPI.transfer(PFACTOR);
         if(temp/10000000000 == 1){
         //To see if value is positive or negative value is divided by 10^16 as output is 17bit long
         register_val = convertToDecimal(temp%10000000000);
@@ -105,7 +110,7 @@ float getvalue(value_type typ){
       */
   case numpstout:
         ConnectbySPI();
-        temp = SPI.transfer(numpstout);
+        temp = SPI.transfer(NUMPSTOUT);
         register_val = convertToDecimal(temp);
         DisconnectbySPI();
         return(register_val);
@@ -115,7 +120,7 @@ float getvalue(value_type typ){
     */
   case vcodes:
         ConnectbySPI();
-        temp = SPI.transfer(vcodes);
+        temp = SPI.transfer(VCODES);
         register_val = convertToDecimal(temp);
         register_val = register_val*Vmax;
         DisconnectbySPI();
@@ -126,7 +131,7 @@ float getvalue(value_type typ){
        */
   case icodes:
         ConnectbySPI();
-        temp = SPI.transfer(icodes);
+        temp = SPI.transfer(ICODES);
         register_val = convertToDecimal(temp);
         register_val = register_val*Imax;
         DisconnectbySPI();

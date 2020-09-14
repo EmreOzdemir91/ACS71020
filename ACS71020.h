@@ -6,14 +6,14 @@
 Addresses of registers
 */ 
 
-#define Vrms_Irms_address     0x20                // Vrms, Irms 
-#define pactive               0x21                // Active Power
-#define papparant             0x22                // Apparant Power
-#define preactive             0x23                // Reactive Power
-#define pfactor               0x24                // Power Factor
-#define numpstout             0x25                // Number of Samples of Current and Voltage used for calculation
-#define vcodes                0x2A                // Instantaneous Voltage Measurement
-#define icodes                0x2B                // Instantaneous Current Measurement
+#define VRMS_IRMS_ADDRESS     0x20                // Vrms, Irms 
+#define PACTIVE               0x21                // Active Power
+#define PAPPARANT             0x22                // Apparant Power
+#define PREACTIVE             0x23                // Reactive Power
+#define PFACTOR               0x24                // Power Factor
+#define NUMPSTOUT             0x25                // Number of Samples of Current and Voltage used for calculation
+#define VCODES                0x2A                // Instantaneous Voltage Measurement
+#define ICODES                0x2B                // Instantaneous Current Measurement
 
 
 
@@ -42,9 +42,7 @@ float Vmax, Imax;
 
 float getvalue(value_type value);
 void setup(ACS71020_type typ, int CS , int mosi,int miso,float vmax);
-void ConnectbySPI();
-void DisconnectbySPI();
-float convertToDecimal(long n);
+
 
 
 
