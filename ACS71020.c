@@ -47,7 +47,7 @@ if(spiHandle == NULL)
 }
 else
 {
-    printf(display, 0, 0, "Master SPI initialized\n");
+    printf("Master SPI initialized\n");
 }
 // Setting Up transaction parameters
 spiTransaction.count = MSGSIZE;
