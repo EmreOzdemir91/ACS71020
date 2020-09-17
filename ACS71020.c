@@ -73,7 +73,7 @@ float ACS71020_getValue(value_type typ){
   case irms:
         transmitBuffer[0] = VRMS_IRMS_ADDRESS;
         transferStatus = SPI_transfer(spiHandle , &spiTransaction);
-        if(transferStatus)
+        if(transferStatus==TRUE)
         {
           temp = recieveBuffer[1] | (recieveBuffer[0]<<8);
           register_val = convertToDecimal(temp);
@@ -92,7 +92,7 @@ float ACS71020_getValue(value_type typ){
   case vrms:
         transmitBuffer[0] = VRMS_IRMS_ADDRESS;
         transferStatus = SPI_transfer(spiHandle , &spiTransaction);
-        if(transferStatus)
+        if(transferStatus==TRUE)
         {
           temp = recieveBuffer[3] | (recieveBuffer[2]<<8);
           register_val = convertToDecimal(temp);
@@ -112,7 +112,7 @@ float ACS71020_getValue(value_type typ){
   case pactive:
         transmitBuffer[0] = PACTIVE;
         transferStatus = SPI_transfer(spiHandle , &spiTransaction);
-        if(transferStatus)
+        if(transferStatus==TRUE)
         {
             if(temp/100000000000000000 == 1){
             /*To see if value is positive or negative value is divided by 10^16 as output is 17bit long
@@ -139,7 +139,7 @@ float ACS71020_getValue(value_type typ){
 
         transmitBuffer[0] = PAPPARANT;
         transferStatus = SPI_transfer(spiHandle , &spiTransaction);
-        if(transferStatus)
+        if(transferStatus==TRUE)
         {
             temp = recieveBuffer[3] | (recieveBuffer[2]<<8);
             register_val = convertToDecimal(temp);
@@ -157,7 +157,7 @@ float ACS71020_getValue(value_type typ){
   case preactive:
         transmitBuffer[0] = PREACTIVE;
         transferStatus = SPI_transfer(spiHandle , &spiTransaction);
-        if(transferStatus)
+        if(transferStatus==TRUE)
         {
           temp = recieveBuffer[3] | (recieveBuffer[2]<<8);
           register_val = convertToDecimal(temp);
@@ -176,7 +176,7 @@ float ACS71020_getValue(value_type typ){
   case pfactor:
         transmitBuffer[0] = PFACTOR;
         transferStatus = SPI_transfer(spiHandle , &spiTransaction);
-        if(transferStatus)
+        if(transferStatus==TRUE)
         {
           temp = recieveBuffer[3] | (recieveBuffer[2]<<8);
           if(temp/10000000000 == 1){
@@ -200,7 +200,7 @@ float ACS71020_getValue(value_type typ){
   case numpstout:
         transmitBuffer[0] = NUMPSTOUT;
         transferStatus = SPI_transfer(spiHandle , &spiTransaction);
-        if(transferStatus)
+        if(transferStatus==TRUE)
         {
           temp = recieveBuffer[3] | (recieveBuffer[2]<<8);
           register_val = convertToDecimal(temp);
@@ -218,7 +218,7 @@ float ACS71020_getValue(value_type typ){
   case vcodes:
         transmitBuffer[0] = VCODES;
         transferStatus = SPI_transfer(spiHandle , &spiTransaction);
-        if(transferStatus)
+        if(transferStatus==TRUE)
         {
             temp = recieveBuffer[3] | (recieveBuffer[2]<<8);
             register_val = convertToDecimal(temp);
@@ -236,7 +236,7 @@ float ACS71020_getValue(value_type typ){
   case icodes:
         transmitBuffer[0] = ICODES;
         transferStatus = SPI_transfer(spiHandle , &spiTransaction);
-        if(transferStatus)
+        if(transferStatus==TRUE)
         {
           temp = recieveBuffer[3] | (recieveBuffer[2]<<8);
           register_val = convertToDecimal(temp);
