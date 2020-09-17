@@ -1,11 +1,64 @@
-#include<ACS71020.h>
-#include<SPI.h>
+#include "ACS71020.h"
+
+/* Driver Header files */
+#include <ti/drivers/GPIO.h>
+#include <ti/drivers/SPI.h>
+#include <ti/display/Display.h>
+
+/* Driver configuration */
+#include "ti_drivers_config.h"
+
+//MSG size which will be recieving from Slave or ACS71020
+#define MSGSIZE  4
 
 
 // Static Function Declaration
-static void ConnectbySPI();
-static void DisconnectbySPI();
 static float convertToDecimal(long n); 
+
+//Declaration of SPI Properties
+SPI_Handle          spiHandle;
+SPI_Params          spiParams;
+SPI_Transaction     spiTransaction;
+
+uint8_t             transmitBuffer[2];
+unit8_t             recieveBuffer[MSGSIZE];
+
+/*
+The Master writes on the MOSI line the 7-bit address of the
+register to be read from or written to.
+The next bit on the MOSI line is the read/write (RW) indicator.
+A high state indicates a Read and a low state indicates a Write.
+
+*/
+
+
+transmitBuffer[1] = 1;        // Read command Indicator
+
+//Initializing SPI Instance and other properties
+SPI_init();
+SPI_Params_init(&spiParams);
+spiParams.dataSize = 8;
+spiParams.transferMode = SPI_MODE_BLOCKING;
+
+//New SPI Instance declaraton
+spiHandle = SPI_open(CONFIG_SPI_MASTER, &spiParams);
+
+//Checking if SPI Instamce is opened or not
+if(spiHandle == NULL)
+{
+    while(1);
+}
+else
+{
+       Display_printf(display, 0, 0, "Master SPI initialized\n");
+}
+// Setting Up transaction parameters
+spiTransaction.count = MSGSIZE;
+spiTransaction.txBuf = (void *)transmitBuffer;
+spiTransaction.rxBuf = (void *)receiveBuffer;
+
+
+
 /********************************************************************
  * @fn          getvalue(value_type typ)
  *
@@ -25,34 +78,31 @@ float getvalue(value_type typ){
       Range of Vrms ouput is 0 : ~1
         */
   case irms:
-        ConnectbySPI();
-        temp = SPI.transfer(VRMS_IRMS_ADDRESS);
-        temp = temp >> 16;
+        transmitBuffer[0] = VRMS_IRMS_ADDRESS;
+        SPI_transfer(spiHandle , &spiTransaction);
+        temp = recieveBuffer[1] | (recieveBuffer[0]<<8);
         register_val = convertToDecimal(temp);
-
         register_val = register_val * Imax;
-        DisconnectbySPI();
         return(register_val);
         break;
     /*Case to find Effective Voltage
       Range of Vrms ouput is 0 : ~1
         */ 
   case vrms:
-        ConnectbySPI();
-        temp = SPI.transfer(VRMS_IRMS_ADDRESS);
-        temp = temp << 16;
+        transmitBuffer[0] = VRMS_IRMS_ADDRESS;
+        SPI_transfer(spiHandle , &spiTransaction);
+        temp = recieveBuffer[3] | (recieveBuffer[2]<<8);
         register_val = convertToDecimal(temp);
-
         register_val = temp*Vmax;
-        DisconnectbySPI();
         return(register_val);
         break;
     /* Case to find Active Power
         Range of Vrms ouput is -2 : ~2
         */ 
   case pactive:
-        ConnectbySPI();
-        temp = SPI.transfer(PACTIVE);
+        transmitBuffer[0] = PACTIVE;
+        SPI_transfer(spiHandle , &spiTransaction);
+        temp = recieveBuffer[3] | (recieveBuffer[2]<<8);
         if(temp/100000000000000000 == 1){
         /*To see if value is positive or negative value is divided by 10^16 as output is 17bit long
          Range of Active power is -2 : ~2
@@ -63,38 +113,38 @@ float getvalue(value_type typ){
         {
           register_val = convertToDecimal(temp);
         }
-        DisconnectbySPI();
         return(register_val);
         break;
     /* Case to find Apparent Power
         Range of output Apparent power is 0 : ~2
      */
   case papparant:
-        ConnectbySPI();
-        temp = SPI.transfer(PAPPARANT);
+
+        transmitBuffer[0] = PAPPARANT;
+        SPI_transfer(spiHandle , &spiTransaction);
+        temp = recieveBuffer[3] | (recieveBuffer[2]<<8);
         register_val = convertToDecimal(temp);
-        
         register_val = temp*Imax*Vmax;
-        DisconnectbySPI();
         return(register_val);
         break;
     /*case to find reactive power
       Range of reactive power is 0 : ~2
       */
   case preactive:
-        ConnectbySPI();
-        temp = SPI.transfer(PREACTIVE);
+        transmitBuffer[0] = PREACTIVE;
+        SPI_transfer(spiHandle , &spiTransaction);
+        temp = recieveBuffer[3] | (recieveBuffer[2]<<8);
         register_val = convertToDecimal(temp);
         register_val = temp*Imax*Vmax;
-        DisconnectbySPI();
         return(register_val);
         break;
     /*Case to find Power Factor
       Range of Power Factor is  -2 : ~2
       */
   case pfactor:
-        ConnectbySPI();
-        temp = SPI.transfer(PFACTOR);
+        transmitBuffer[0] = PFACTOR;
+        SPI_transfer(spiHandle , &spiTransaction);
+        temp = recieveBuffer[3] | (recieveBuffer[2]<<8);
         if(temp/10000000000 == 1){
         //To see if value is positive or negative value is divided by 10^16 as output is 17bit long
         register_val = convertToDecimal(temp%10000000000);
@@ -102,39 +152,38 @@ float getvalue(value_type typ){
         else{
         register_val = convertToDecimal(temp);
         }
-        DisconnectbySPI();
         return(register_val);
         break;
     /*Number of samples of current and voltage used for calculations
       Range 0 to 511
       */
   case numpstout:
-        ConnectbySPI();
-        temp = SPI.transfer(NUMPSTOUT);
+        transmitBuffer[0] = NUMPSTOUT;
+        SPI_transfer(spiHandle , &spiTransaction);
+        temp = recieveBuffer[3] | (recieveBuffer[2]<<8);
         register_val = convertToDecimal(temp);
-        DisconnectbySPI();
         return(register_val);
         break;
     /* To find Instantaneous voltage measurement
      Rangs of vcodes is -1 : ~1
     */
   case vcodes:
-        ConnectbySPI();
-        temp = SPI.transfer(VCODES);
+        transmitBuffer[0] = VCODES;
+        SPI_transfer(spiHandle , &spiTransaction);
+        temp = recieveBuffer[3] | (recieveBuffer[2]<<8);
         register_val = convertToDecimal(temp);
         register_val = register_val*Vmax;
-        DisconnectbySPI();
         return(register_val);
         break;
     /* To find Instantaneous current measurement
        Rangs of vcodes is -2 : ~2
        */
   case icodes:
-        ConnectbySPI();
-        temp = SPI.transfer(ICODES);
+        transmitBuffer[0] = ICODES;
+        SPI_transfer(spiHandle , &spiTransaction);
+        temp = recieveBuffer[3] | (recieveBuffer[2]<<8);
         register_val = convertToDecimal(temp);
         register_val = register_val*Imax;
-        DisconnectbySPI();
         return(register_val);
         break;
   
@@ -143,36 +192,9 @@ float getvalue(value_type typ){
   }
      
 }
-/********************************************************************
- * @fn          ACS71020_ConnectbySPI()
- *
- * @brief       Connects to ACS71020 using SPI protocol
- *
- * @param       None
- *
- * @return      None
- */
-void ACS71020_ConnectbySPI()
-{
-  pinMode(ChS, OUTPUT);
-  SPI.begin();
-  SPI.setBitOrder(MSBFIRST);
-  SPI.setDataMode(SPI_MODE0);
-  digitalWrite(ChS, LOW);
-}
-/********************************************************************
- * @fn          ACS71020_ConnectbySPI()
- *
- * @brief       Disconnects ACS71020 with MCU
- *
- * @param       None
- *
- * @return      None
- */
-void ACS71020_DisconnectbySPI()
-{
-  digitalWrite(ChS, HIGH);
-}
+
+
+
 /********************************************************************
  * @fn          convertToDecimal(long n)
  *
@@ -194,10 +216,12 @@ float convertToDecimal(long n) {
     return dec;
 }
 
+
+
 /********************************************************************
- * @fn          convertToDecimal(long n)
+ * @fn          ACS71020_setup(ACS71020_type typ, int CS , int mosi,int miso,float vmax)
  *
- * @brief       Converts output given by ACS71020 (Binary) to decimal
+ * @brief       Initialize the pine
  *
  * @param       ACS71020_type , Chip Select , MOSI Pin of Master, MISO pin of Master, Full Scale Voltage
  *
@@ -217,10 +241,11 @@ void ACS71020_setup(ACS71020_type typ, int CS , int mosi,int miso,float vmax)
       Imax = 30.00;
       break;
     default:
-      Imax = 30.00    
+      Imax = 30.00;    
     }
     pinMode(ChS, OUTPUT);
-    pinMode(MOSI, OUTPUT);
     pinMode(MISO, INPUT);
+    pinMode(MOSI, OUTPUT);
+    pinMode(SCLK, OUTPUT);
     
 }

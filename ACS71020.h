@@ -1,6 +1,5 @@
 #ifndef ACS71020_h
 #define ACS71020_h
-#include<Arduino.h>
 
 /*
 Addresses of registers
