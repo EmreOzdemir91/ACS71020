@@ -1,7 +1,12 @@
 #ifndef ACS71020_h
 #define ACS71020_h
 
+//Invoking SPI Library 
+#include <ti/drivers/SPI.h>
+
+
 /*
+MACROS :- 
 Addresses of registers
 */ 
 
@@ -28,20 +33,10 @@ Addresses of registers
 enum ACS71020_type { ACS71020_15A, ACS71020_30A};                                               // Models of ACS71020
 enum value_type {irms,vrms,pactive,papparant,preactive,pfactor,numpstout,vcodes,icodes};        // Types of ACS71020 Values
 
-/*
-ChS = Chip Select,
-MOSI = Master Out Slave In Pin,
-MISO = Master In Slave Out Pin,
-SCLK = Serial Clock Pin
-Vmax = Full Scale Voltage
-Imax = Full Scale Current
-*/
-int ChS, MOSI, MISO,SCLK;            
-float Vmax, Imax;
 
-float getvalue(value_type value);
-void setup(ACS71020_type typ, int CS , int mosi,int miso,float vmax);
-
+float ACS71020_getValue(value_type value);
+bool ACS71020_Setup(ACS71020_type typ, int CS , int mosi,int miso,float vmax);
+bool ACS71020_SPI_init(SPI_Handle BusHandle);
 
 
 
