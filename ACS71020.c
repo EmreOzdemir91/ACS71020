@@ -1,12 +1,9 @@
 #include "ACS71020.h"
 
 /* Driver Header files */
-#include <ti/drivers/GPIO.h>
-#include <ti/drivers/SPI.h>
-#include <ti/display/Display.h>
 
-/* Driver configuration */
-#include "ti_drivers_config.h"
+#include <ti/drivers/SPI.h>
+
 
 //MSG size which will be recieving from Slave or ACS71020
 #define MSGSIZE  4
