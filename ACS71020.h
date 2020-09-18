@@ -1,16 +1,23 @@
-#ifndef ACS71020_h
-#define ACS71020_h
+/*
+ * ACS71020.h
+ *
+ *  Created on: Sep 18, 2020
+ *      Author: Aniket Paluskar
+ */
 
-//Invoking SPI Library 
+#ifndef APPLICATION_ACS71020_ACS71020_H_
+#define APPLICATION_ACS71020_ACS71020_H_
+#include <ti/drivers/SPI.h>
+//Invoking SPI Library
 #include <ti/drivers/SPI.h>
 
 
 /*
-MACROS :- 
+MACROS :-
 Addresses of registers
-*/ 
+*/
 
-#define VRMS_IRMS_ADDRESS     0x20                // Vrms, Irms 
+#define VRMS_IRMS_ADDRESS     0x20                // Vrms, Irms
 #define PACTIVE               0x21                // Active Power
 #define PAPPARANT             0x22                // Apparant Power
 #define PREACTIVE             0x23                // Reactive Power
@@ -27,21 +34,22 @@ Addresses of registers
 
 /*
 @ACS71020_type User defined datatypes to select the Model of ACS71020
-
-@value_type - User Defined datatype to select the property user wants to fetch
 */
-enum ACS71020_type { ACS71020_15A, ACS71020_30A};                                               // Models of ACS71020
-enum value_type {irms,vrms,pactive,papparant,preactive,pfactor,numpstout,vcodes,icodes};        // Types of ACS71020 Values
+typedef enum {ACS71020_15A,
+              ACS71020_30A
+              }ACS71020_type;                                               // Models of ACS71020
+
+float ACS71020_getIrms();
+float ACS71020_getVrms();
+float ACS71020_getPactive();
+float ACS71020_getPapparent();
+float ACS71020_getPreactuve();
+float ACS71020_getPfactor();
+float ACS71020_getNumpstout();
+float ACS71020_getVcodes();
+float ACS71020_getIcodes();
+bool ACS71020_SPI_init(ACS71020_type type, SPI_Handle BusHandle, float vmax);
 
 
-float ACS71020_getValue(value_type value);
-bool ACS71020_Setup(ACS71020_type typ, int CS , int mosi,int miso,float vmax);
-bool ACS71020_SPI_init(SPI_Handle BusHandle);
 
-
-
-
-
-#endif
-
-
+#endif /* APPLICATION_ACS71020_ACS71020_H_ */
