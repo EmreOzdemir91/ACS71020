@@ -75,7 +75,7 @@ float convertToDecimal(long n) {
  *
  * @brief       Initializes handle
  *
- * @param       SPI Handle
+ * @param       ACS71020_type, SPI Handle, Vmax(Full Scale Voltage 
  *
  * @return      True if successful and false if unsuccessful
  */
