@@ -12,6 +12,7 @@
 
 /*  MACRO :- MSG size which will be recieving from Slave or ACS71020  */
 #define MSGSIZE  4
+#define READ_COMMAND_ACS71020 1
 
 
 /*****************************************
@@ -23,13 +24,21 @@ static float convertToDecimal(long n);
  * Local Variables
  * Vmax = Full Scale Voltage
  * Imax = Full Scale Current
- */
-static float Vmax, Imax;
-SPI_Handle          spiHandle;
-SPI_Transaction     spiTransaction;
-
-static uint8_t             transmitBuffer[2];
+ *
+ * The Master writes on the MOSI line the 7-bit address of the
+   register to be read from or written to.
+   The next bit on the MOSI line is the read/write (RW) indicator.
+   A high state indicates a Read and a low state indicates a Write.
+*/
+static uint8_t             transmitBuffer[2] = {0,READ_COMMAND_ACS71020};
 static uint8_t             recieveBuffer[MSGSIZE];
+static float               Vmax, Imax;
+SPI_Handle                 spiHandle;
+SPI_Transaction            spiTransaction{spiTransaction.count = MSGSIZE,
+                           spiTransaction.txBuf = (void *)transmitBuffer,
+                           spiTransaction.rxBuf = (void *)receiveBuffer,
+                           };
+
 
 
 /*
@@ -40,15 +49,6 @@ A high state indicates a Read and a low state indicates a Write.
 
 */
 
-
-transmitBuffer[1] = 1;        // Read command Indicator
-
-/*********************************************
- *  Setting Up transaction parameters */
-
-spiTransaction.count = MSGSIZE;
-spiTransaction.txBuf = transmitBuffer;
-spiTransaction.rxBuf = receiveBuffer;
 
 
 /********************************************************************
