@@ -34,10 +34,7 @@ static uint8_t             transmitBuffer[2] = {0,READ_COMMAND_ACS71020};
 static uint8_t             recieveBuffer[MSGSIZE];
 static float               Vmax, Imax;
 SPI_Handle                 spiHandle;
-SPI_Transaction            spiTransaction{spiTransaction.count = MSGSIZE,
-                           spiTransaction.txBuf = (void *)transmitBuffer,
-                           spiTransaction.rxBuf = (void *)receiveBuffer,
-                           };
+SPI_Transaction            spiTransaction;
 
 
 
@@ -84,6 +81,9 @@ float convertToDecimal(long n) {
  */
 bool ACS71020_SPI_init(ACS71020_type type,SPI_Handle BusHandle,float vmax)
 {
+    spiTransaction.count = 4;
+    spiTransaction.txBuf = (void *)transmitBuffer;
+    spiTransaction.rxBuf = (void *)recieveBuffer;
     switch(type){                                // Imax is defined by model name
         case ACS71020_15A:
           Imax = 15.00;
