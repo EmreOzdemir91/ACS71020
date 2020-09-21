@@ -43,7 +43,7 @@ SPI_Transaction            spiTransaction;
  *
  * @brief       Initializes handle
  *
- * @param       ACS71020_type, SPI Handle, Vmax(Full Scale Voltage
+ * @param       ACS71020_type, SPI Handle, Vmax(Full Scale Voltage)
  *
  * @return      True if successful and false if unsuccessful
  */
@@ -294,14 +294,14 @@ float ACS71020_getPfactor()
  *
  * @param       None
  *
- * @return      Float Value
+ * @return      16 bit integer
  *
  */
-float ACS71020_getNumpstout()
+uint16_t ACS71020_getNumpstout()
 {
   if (checkSPIhandle()==true)
   {
-    float register_val;
+    uint16_t register_val;
     bool transferStatus = false;
     transmitBuffer[0] = NUMPSTOUT;
     transferStatus = SPI_transfer(spiHandle , &spiTransaction);

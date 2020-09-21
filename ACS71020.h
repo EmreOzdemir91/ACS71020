@@ -45,7 +45,7 @@ float ACS71020_getPactive();
 float ACS71020_getPapparent();
 float ACS71020_getPreactuve();
 float ACS71020_getPfactor();
-float ACS71020_getNumpstout();
+uint16_t ACS71020_getNumpstout();
 float ACS71020_getVcodes();
 float ACS71020_getIcodes();
 bool ACS71020_SPI_init(ACS71020_type type, SPI_Handle BusHandle, float vmax);
