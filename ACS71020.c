@@ -18,7 +18,8 @@
 /*****************************************
  * Local Functions */
 static bool checkSPIhandle();
-
+static unsigned long getPower(uint16_t number,uint8_t exponent);
+static uint8_t countDigits(uint16_t number);
 
 /*****************************************
  * Local Variables
@@ -91,11 +92,17 @@ float ACS71020_getIrms()
   {
     float register_val;
     bool transferStatus = false;
+    uint16_t tempRegister_val;
+    uint16_t temp;
+    uint8_t normalizing_Number = 127;
     transmitBuffer[0] = VRMS_IRMS_ADDRESS;
     transferStatus = SPI_transfer(spiHandle , &spiTransaction);
     if(transferStatus==true)
     {
-      register_val= recieveBuffer[1] | (recieveBuffer[0]<<8);
+      tempRegister_val = recieveBuffer[3] & normalizing_Number;
+      tempRegister_val = tempRegister_val>>7;
+      temp = recieveBuffer[2]<<7 | recieveBuffer[3];
+      register_val = tempRegister_val + (temp/(getPower(10, countDigits(temp))));
       register_val = register_val * Imax;
       return(register_val);
     }
@@ -125,13 +132,17 @@ float ACS71020_getVrms()
 {
   if(checkSPIhandle()==true)
   {
-    float register_val;
+    float register_val = 0.0;
     bool transferStatus = false;
+    uint16_t temp;
+    uint8_t normalizing_Number = 0b01111111;
     transmitBuffer[0] = VRMS_IRMS_ADDRESS;
     transferStatus = SPI_transfer(spiHandle , &spiTransaction);
     if(transferStatus==true)
     {
-      register_val = recieveBuffer[3] | (recieveBuffer[2]<<8);
+      recieveBuffer[1] = recieveBuffer[1] & normalizing_Number;
+      temp = recieveBuffer[0]<<7 | recieveBuffer[1];
+      register_val = temp/(getPower(10, countDigits(temp)));
       register_val = register_val*Vmax;
       return(register_val);
     }
@@ -197,12 +208,22 @@ float ACS71020_getPapparent()
   if(checkSPIhandle()==true)
   {
     float register_val;
+    uint8_t tempRegister_val;
     bool transferStatus = false;
+    uint16_t temp;
+    uint8_t normalizing_Number = 0b10000000;
     transmitBuffer[0] = PAPPARANT;
     transferStatus = SPI_transfer(spiHandle , &spiTransaction);
     if(transferStatus==true)
     {
-        register_val= recieveBuffer[3] | (recieveBuffer[2]<<8);
+        /*
+         * Getting bits
+         */
+        tempRegister_val = recieveBuffer[1] & normalizing_Number;
+        normalizing_Number = 0b01111111;
+        recieveBuffer[1] = recieveBuffer[1] & normalizing_Number;
+        temp = recieveBuffer[0]<<7 | recieveBuffer[1];
+        register_val = tempRegister_val+ (temp/(getPower(10, countDigits(temp))));
         register_val = register_val*Imax*Vmax;
         return(register_val);
     }
@@ -231,12 +252,24 @@ float ACS71020_getPreactive()
   if(checkSPIhandle()==true)
   {
     float register_val;
+    uint16_t tempRegister_val;
     bool transferStatus = false;
+    uint8_t normalizing_Number = 128;
+    uint16_t temp=0;
     transmitBuffer[0] = PREACTIVE;
     transferStatus = SPI_transfer(spiHandle , &spiTransaction);
     if(transferStatus==true)
     {
-      register_val = recieveBuffer[3] | (recieveBuffer[2]<<8);
+        /*
+         * Getting bits
+         */
+      tempRegister_val = recieveBuffer[1] & normalizing_Number;
+      tempRegister_val = tempRegister_val>>7;
+      normalizing_Number = 0b01111111;
+      recieveBuffer[1] = recieveBuffer[1] & normalizing_Number;
+      temp = recieveBuffer[0]<<7 | recieveBuffer[1];
+      register_val = tempRegister_val +( temp/(getPower(10, countDigits(temp))));
+
       register_val = register_val*Imax*Vmax;
       return(register_val);
     }
@@ -302,12 +335,17 @@ uint16_t ACS71020_getNumpstout()
   if (checkSPIhandle()==true)
   {
     uint16_t register_val;
+    uint8_t normalizing_Number = 0b00000001;
     bool transferStatus = false;
     transmitBuffer[0] = NUMPSTOUT;
     transferStatus = SPI_transfer(spiHandle , &spiTransaction);
     if(transferStatus==true)
     {
-      register_val= recieveBuffer[3] | (recieveBuffer[2]<<8);
+        /*
+         * normalizing_Number is used to get the correct bit and making other bits as zero.
+         */
+      register_val= (recieveBuffer[1] & normalizing_Number)<<8;
+      register_val= register_val | recieveBuffer[0];
       return(register_val);
     }
     else
@@ -377,7 +415,7 @@ float ACS71020_getIcodes()
     transferStatus = SPI_transfer(spiHandle , &spiTransaction);
     if(transferStatus==true)
     {
-      register_val = recieveBuffer[3] | (recieveBuffer[2]<<8);
+      register_val = (recieveBuffer[1]<<8) | recieveBuffer[0];
       register_val = register_val*Imax;
       return(register_val);
     }
@@ -414,4 +452,53 @@ bool checkSPIhandle()
     return false;
   }
 
+}
+
+/****************************************************************************************
+ *@fn            countDigits(uint16_t number)
+ *
+ *@brief         Counts digits in number
+ *
+ *@param        Integer
+ *
+ *@returns      Number of digits in the number
+ */
+
+uint8_t countDigits(uint16_t number)
+{
+        uint16_t num = number;
+        uint8_t count = 0;
+        /* Run loop till num is greater than 0 */
+        do
+        {
+            /* Increment digit count */
+            count++;
+
+            /* Remove last digit of 'num' */
+            num /= 10;
+        } while(num != 0);
+
+        return count;
+}
+/****************************************************************************************
+ *@fn           getPower(uint16_t number,uint8_t exponent)
+ *
+ *@brief        Calculates power
+ *
+ *@param        Base, Exponent
+ *
+ *@returns      Base^Exponent
+ */
+
+unsigned long getPower(uint16_t number,uint8_t exponent)
+{
+        uint16_t base = number;
+        uint8_t exp = exponent;
+        long result = 1;
+
+        while (exp != 0) {
+            result *= base;
+            --exp;
+        }
+        return result;
 }
