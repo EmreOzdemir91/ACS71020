@@ -18,8 +18,6 @@
 /*****************************************
  * Local Functions */
 static bool checkSPIhandle();
-static unsigned long getPower(uint16_t number,uint8_t exponent);
-static uint8_t countDigits(uint16_t number);
 
 /*****************************************
  * Local Variables
@@ -93,16 +91,14 @@ float ACS71020_getIrms()
     float register_val;
     bool transferStatus = false;
     uint16_t tempRegister_val;
-    uint16_t temp;
-    uint8_t normalizing_Number = 127;
+    uint8_t normalizing_Number = 0b01111111;
     transmitBuffer[0] = VRMS_IRMS_ADDRESS;
     transferStatus = SPI_transfer(spiHandle , &spiTransaction);
     if(transferStatus==true)
     {
       tempRegister_val = recieveBuffer[3] & normalizing_Number;
-      tempRegister_val = tempRegister_val>>7;
-      temp = recieveBuffer[2]<<7 | recieveBuffer[3];
-      register_val = tempRegister_val + (temp/(getPower(10, countDigits(temp))));
+      tempRegister_val = tempRegister_val<<8 | recieveBuffer[2];
+      register_val = tempRegister_val/pow(2,14);
       register_val = register_val * Imax;
       return(register_val);
     }
@@ -132,17 +128,17 @@ float ACS71020_getVrms()
 {
   if(checkSPIhandle()==true)
   {
-    float register_val = 0.0;
+    float register_val;
     bool transferStatus = false;
-    uint16_t temp;
+    uint16_t tempRegister_val;
     uint8_t normalizing_Number = 0b01111111;
     transmitBuffer[0] = VRMS_IRMS_ADDRESS;
     transferStatus = SPI_transfer(spiHandle , &spiTransaction);
     if(transferStatus==true)
     {
-      recieveBuffer[1] = recieveBuffer[1] & normalizing_Number;
-      temp = recieveBuffer[0]<<7 | recieveBuffer[1];
-      register_val = temp/(getPower(10, countDigits(temp)));
+      tempRegister_val = recieveBuffer[1] & normalizing_Number;
+      tempRegister_val = tempRegister_val<<8 | recieveBuffer[0];
+      register_val = tempRegister_val/pow(2,15);
       register_val = register_val*Vmax;
       return(register_val);
     }
@@ -173,12 +169,16 @@ float ACS71020_getPactive()
   {
     float register_val;
     bool transferStatus = false;
+    uint32_t tempRegister_val;
+    uint8_t normalizing_Number = 0b00000001;
     transmitBuffer[0] = PACTIVE;
     transferStatus = SPI_transfer(spiHandle , &spiTransaction);
     if(transferStatus==true)
     {
-        register_val = recieveBuffer[3] | (recieveBuffer[2]<<8);
-        register_val = register_val * Vmax * Imax;
+        tempRegister_val = recieveBuffer[2] & normalizing_Number;
+        tempRegister_val = tempRegister_val << 8 | recieveBuffer[1];
+        tempRegister_val = tempRegister_val << 8 | recieveBuffer[0];
+        register_val = (tempRegister_val/pow(2,15)) * Vmax * Imax;
         return(register_val);
     }
     else
@@ -208,23 +208,14 @@ float ACS71020_getPapparent()
   if(checkSPIhandle()==true)
   {
     float register_val;
-    uint8_t tempRegister_val;
+    uint16_t tempRegister_val;
     bool transferStatus = false;
-    uint16_t temp;
-    uint8_t normalizing_Number = 0b10000000;
     transmitBuffer[0] = PAPPARANT;
     transferStatus = SPI_transfer(spiHandle , &spiTransaction);
     if(transferStatus==true)
     {
-        /*
-         * Getting bits
-         */
-        tempRegister_val = recieveBuffer[1] & normalizing_Number;
-        normalizing_Number = 0b01111111;
-        recieveBuffer[1] = recieveBuffer[1] & normalizing_Number;
-        temp = recieveBuffer[0]<<7 | recieveBuffer[1];
-        register_val = tempRegister_val+ (temp/(getPower(10, countDigits(temp))));
-        register_val = register_val*Imax*Vmax;
+        tempRegister_val = recieveBuffer[1]<<8 | recieveBuffer[0];
+        register_val = (tempRegister_val/pow(2,15))*Imax*Vmax;
         return(register_val);
     }
     else
@@ -254,23 +245,13 @@ float ACS71020_getPreactive()
     float register_val;
     uint16_t tempRegister_val;
     bool transferStatus = false;
-    uint8_t normalizing_Number = 128;
-    uint16_t temp=0;
     transmitBuffer[0] = PREACTIVE;
     transferStatus = SPI_transfer(spiHandle , &spiTransaction);
     if(transferStatus==true)
     {
-        /*
-         * Getting bits
-         */
-      tempRegister_val = recieveBuffer[1] & normalizing_Number;
-      tempRegister_val = tempRegister_val>>7;
-      normalizing_Number = 0b01111111;
-      recieveBuffer[1] = recieveBuffer[1] & normalizing_Number;
-      temp = recieveBuffer[0]<<7 | recieveBuffer[1];
-      register_val = tempRegister_val +( temp/(getPower(10, countDigits(temp))));
-
-      register_val = register_val*Imax*Vmax;
+      tempRegister_val = recieveBuffer[1]<<8 | recieveBuffer[0];
+      tempRegister_val = tempRegister_val/pow(2,15);
+      register_val = tempRegister_val*Imax*Vmax;
       return(register_val);
     }
     else
@@ -302,12 +283,25 @@ float ACS71020_getPfactor()
   {
     float register_val;
     bool transferStatus = false;
+    uint16_t tempRegister_val;
+    uint8_t normalizing_Number= 0b00000111, negativeChecker =0b00000100;
     transmitBuffer[0] = PFACTOR;
     transferStatus = SPI_transfer(spiHandle , &spiTransaction);
     if(transferStatus==true)
     {
-      register_val= recieveBuffer[3] | (recieveBuffer[2]<<8);
-      return(register_val);
+        tempRegister_val = recieveBuffer[1] & normalizing_Number;
+        if(tempRegister_val & negativeChecker == negativeChecker)
+        {
+            tempRegister_val = tempRegister_val <<8 | recieveBuffer[0];
+            register_val = (tempRegister_val/pow(2,9))*-1;
+        }
+        else
+        {
+            tempRegister_val = tempRegister_val <<8 | recieveBuffer[0];
+            register_val = (tempRegister_val/pow(2,9));
+        }
+
+        return register_val;
     }
     else
     {
@@ -376,12 +370,25 @@ float ACS71020_getVcodes()
   if(checkSPIhandle()==true){
     float register_val;
     bool transferStatus = false;
+    uint8_t normalizing_Number = 0b00000001;
+    uint16_t tempRegister_val;
     transmitBuffer[0] = VCODES;
     transferStatus = SPI_transfer(spiHandle , &spiTransaction);
     if(transferStatus==true)
     {
-        register_val = recieveBuffer[3] | (recieveBuffer[2]<<8);
-        register_val = register_val*Vmax;
+        tempRegister_val = recieveBuffer[2] & normalizing_Number;
+
+        /*
+         * If bit no. 17 = 0b1(1 in decimal), then output is negative
+         */
+        if(tempRegister_val == 1){
+            tempRegister_val = tempRegister_val <<18 | recieveBuffer[1]<<8 | recieveBuffer[0];
+            register_val = (tempRegister_val/pow(2, 16))*Vmax*-1;
+        }
+        else{
+            tempRegister_val = tempRegister_val <<18 | recieveBuffer[1]<<8 | recieveBuffer[0];
+            register_val = (tempRegister_val/pow(2, 16))*Vmax;
+        }
         return(register_val);
     }
     else
@@ -412,12 +419,25 @@ float ACS71020_getIcodes()
     float register_val;
     bool transferStatus = false;
     transmitBuffer[0] = ICODES;
+    uint8_t normalizing_Number = 0b00000001;
+    uint16_t tempRegister_val;
     transferStatus = SPI_transfer(spiHandle , &spiTransaction);
     if(transferStatus==true)
     {
-      register_val = (recieveBuffer[1]<<8) | recieveBuffer[0];
-      register_val = register_val*Imax;
-      return(register_val);
+        tempRegister_val = recieveBuffer[2] & normalizing_Number;
+
+                /*
+                 * If bit no. 17 = 0b1(1 in decimal), then output is negative
+                 */
+                if(tempRegister_val == 1){
+                    tempRegister_val = recieveBuffer[1]<<8 | recieveBuffer[0];
+                    register_val = (tempRegister_val/pow(2, 16))*Vmax*-1;
+                }
+                else{
+                    tempRegister_val = recieveBuffer[1]<<8 | recieveBuffer[0];
+                    register_val = (tempRegister_val/pow(2, 16))*Vmax;
+                }
+                return(register_val);
     }
     else
     {
@@ -452,53 +472,4 @@ bool checkSPIhandle()
     return false;
   }
 
-}
-
-/****************************************************************************************
- *@fn            countDigits(uint16_t number)
- *
- *@brief         Counts digits in number
- *
- *@param        Integer
- *
- *@returns      Number of digits in the number
- */
-
-uint8_t countDigits(uint16_t number)
-{
-        uint16_t num = number;
-        uint8_t count = 0;
-        /* Run loop till num is greater than 0 */
-        do
-        {
-            /* Increment digit count */
-            count++;
-
-            /* Remove last digit of 'num' */
-            num /= 10;
-        } while(num != 0);
-
-        return count;
-}
-/****************************************************************************************
- *@fn           getPower(uint16_t number,uint8_t exponent)
- *
- *@brief        Calculates power
- *
- *@param        Base, Exponent
- *
- *@returns      Base^Exponent
- */
-
-unsigned long getPower(uint16_t number,uint8_t exponent)
-{
-        uint16_t base = number;
-        uint8_t exp = exponent;
-        long result = 1;
-
-        while (exp != 0) {
-            result *= base;
-            --exp;
-        }
-        return result;
 }
