@@ -338,8 +338,8 @@ uint16_t ACS71020_getNumpstout()
         /*
          * normalizing_Number is used to get the correct bit and making other bits as zero.
          */
-      register_val= (recieveBuffer[1] & normalizing_Number)<<8;
-      register_val= register_val | recieveBuffer[0];
+      register_val= recieveBuffer[1] & normalizing_Number;
+      register_val= register_val<<8 | recieveBuffer[0];
       return(register_val);
     }
     else
@@ -350,7 +350,6 @@ uint16_t ACS71020_getNumpstout()
   else{
     return(0);
   }
-
 
 }
 
