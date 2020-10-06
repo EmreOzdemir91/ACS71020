@@ -6,14 +6,10 @@
  */
 #include "ACS71020.h"
 #include "math.h"
-/* Driver Header file */
-#include <ti/drivers/SPI.h>
-
 
 /*  MACRO :- MSG size which will be recieving from Slave or ACS71020  */
-#define MSGSIZE  4
+#define MSGSIZE 4
 #define READ_COMMAND_ACS71020 1
-
 
 /*****************************************
  * Local Functions */
@@ -29,13 +25,11 @@ static bool checkSPIhandle();
    The next bit on the MOSI line is the read/write (RW) indicator.
    A high state indicates a Read and a low state indicates a Write.
 */
-static uint8_t             transmitBuffer[2] = {0,READ_COMMAND_ACS71020};
-static uint8_t             recieveBuffer[MSGSIZE];
-static float               Vmax, Imax;
-SPI_Handle                 spiHandle;
-SPI_Transaction            spiTransaction;
-
-
+static uint8_t transmitBuffer[2] = {0, READ_COMMAND_ACS71020};
+static uint8_t recieveBuffer[MSGSIZE];
+static float Vmax, Imax;
+SPI_Handle spiHandle;
+SPI_Transaction spiTransaction;
 
 /*************************************************************************
  * @fn          ACS71020_SPI_init()
@@ -46,34 +40,34 @@ SPI_Transaction            spiTransaction;
  *
  * @return      True if successful and false if unsuccessful
  */
-bool ACS71020_SPI_init(ACS71020_type type,SPI_Handle BusHandle,float vmax)
+bool ACS71020_SPI_init(ACS71020_type type, SPI_Handle BusHandle, float vmax)
 {
-    spiTransaction.count = 4;
-    spiTransaction.txBuf = (void *)transmitBuffer;
-    spiTransaction.rxBuf = (void *)recieveBuffer;
-    switch(type){                                // Imax is defined by model name
-        case ACS71020_15A:
-          Imax = 15.00;
-          break;
-        case ACS71020_30A:
-          Imax = 30.00;
-          break;
-        default:
-          Imax = 30.00;
-          break;
-        }
-    Vmax = vmax;
+  spiTransaction.count = 4;
+  spiTransaction.txBuf = (void *)transmitBuffer;
+  spiTransaction.rxBuf = (void *)recieveBuffer;
+  switch (type)
+  { // Imax is defined by model name
+  case ACS71020_15A:
+    Imax = 15.00;
+    break;
+  case ACS71020_30A:
+    Imax = 30.00;
+    break;
+  default:
+    Imax = 30.00;
+    break;
+  }
+  Vmax = vmax;
   spiHandle = BusHandle;
-  if(spiHandle == NULL)
+  if (spiHandle == NULL)
   {
-    return(false);
+    return (false);
   }
   else
   {
-    return(true);
+    return (true);
   }
 }
-
 
 /*************************************************************
  * @fn          ACS71020_getIrms()
@@ -86,34 +80,32 @@ bool ACS71020_SPI_init(ACS71020_type type,SPI_Handle BusHandle,float vmax)
  */
 float ACS71020_getIrms()
 {
-  if(checkSPIhandle()==true)
+  if (checkSPIhandle() == true)
   {
     float register_val;
     bool transferStatus = false;
     uint16_t tempRegister_val;
     uint8_t normalizing_Number = 0b01111111;
     transmitBuffer[0] = VRMS_IRMS_ADDRESS;
-    transferStatus = SPI_transfer(spiHandle , &spiTransaction);
-    if(transferStatus==true)
+    transferStatus = SPI_transfer(spiHandle, &spiTransaction);
+    if (transferStatus == true)
     {
       tempRegister_val = recieveBuffer[3] & normalizing_Number;
-      tempRegister_val = tempRegister_val<<8 | recieveBuffer[2];
-      register_val = tempRegister_val/pow(2,14);
+      tempRegister_val = tempRegister_val << 8 | recieveBuffer[2];
+      register_val = tempRegister_val / pow(2, 14);
       register_val = register_val * Imax;
-      return(register_val);
+      return (register_val);
     }
     else
     {
-      return(NULL);
+      return (NULL);
     }
   }
   else
   {
-    return(0);
+    return (0);
   }
-
 }
-
 
 /*************************************************************
  * @fn          ACS71020_getVrms()
@@ -126,33 +118,32 @@ float ACS71020_getIrms()
  */
 float ACS71020_getVrms()
 {
-  if(checkSPIhandle()==true)
+  if (checkSPIhandle() == true)
   {
     float register_val;
     bool transferStatus = false;
     uint16_t tempRegister_val;
     uint8_t normalizing_Number = 0b01111111;
     transmitBuffer[0] = VRMS_IRMS_ADDRESS;
-    transferStatus = SPI_transfer(spiHandle , &spiTransaction);
-    if(transferStatus==true)
+    transferStatus = SPI_transfer(spiHandle, &spiTransaction);
+    if (transferStatus == true)
     {
       tempRegister_val = recieveBuffer[1] & normalizing_Number;
-      tempRegister_val = tempRegister_val<<8 | recieveBuffer[0];
-      register_val = tempRegister_val/pow(2,15);
-      register_val = register_val*Vmax;
-      return(register_val);
+      tempRegister_val = tempRegister_val << 8 | recieveBuffer[0];
+      register_val = tempRegister_val / pow(2, 15);
+      register_val = register_val * Vmax;
+      return (register_val);
     }
     else
     {
-      return(NULL);
+      return (NULL);
     }
   }
-  else{
-    return(0);
+  else
+  {
+    return (0);
   }
-
 }
-
 
 /*************************************************************
  * @fn          ACS71020_getPactive()
@@ -165,34 +156,32 @@ float ACS71020_getVrms()
  */
 float ACS71020_getPactive()
 {
-  if(checkSPIhandle()==true)
+  if (checkSPIhandle() == true)
   {
     float register_val;
     bool transferStatus = false;
     uint32_t tempRegister_val;
     uint8_t normalizing_Number = 0b00000001;
     transmitBuffer[0] = PACTIVE;
-    transferStatus = SPI_transfer(spiHandle , &spiTransaction);
-    if(transferStatus==true)
+    transferStatus = SPI_transfer(spiHandle, &spiTransaction);
+    if (transferStatus == true)
     {
-        tempRegister_val = recieveBuffer[2] & normalizing_Number;
-        tempRegister_val = tempRegister_val << 8 | recieveBuffer[1];
-        tempRegister_val = tempRegister_val << 8 | recieveBuffer[0];
-        register_val = (tempRegister_val/pow(2,15)) * Vmax * Imax;
-        return(register_val);
+      tempRegister_val = recieveBuffer[2] & normalizing_Number;
+      tempRegister_val = tempRegister_val << 8 | recieveBuffer[1];
+      tempRegister_val = tempRegister_val << 8 | recieveBuffer[0];
+      register_val = (tempRegister_val / pow(2, 15)) * Vmax * Imax;
+      return (register_val);
     }
     else
     {
-        return(NULL);
+      return (NULL);
     }
-
   }
   else
   {
-      return(0);
+    return (0);
   }
 }
-
 
 /*************************************************************
  * @fn          ACS71020_getPapparent()
@@ -205,29 +194,29 @@ float ACS71020_getPactive()
  */
 float ACS71020_getPapparent()
 {
-  if(checkSPIhandle()==true)
+  if (checkSPIhandle() == true)
   {
     float register_val;
     uint16_t tempRegister_val;
     bool transferStatus = false;
     transmitBuffer[0] = PAPPARANT;
-    transferStatus = SPI_transfer(spiHandle , &spiTransaction);
-    if(transferStatus==true)
+    transferStatus = SPI_transfer(spiHandle, &spiTransaction);
+    if (transferStatus == true)
     {
-        tempRegister_val = recieveBuffer[1]<<8 | recieveBuffer[0];
-        register_val = (tempRegister_val/pow(2,15))*Imax*Vmax;
-        return(register_val);
+      tempRegister_val = recieveBuffer[1] << 8 | recieveBuffer[0];
+      register_val = (tempRegister_val / pow(2, 15)) * Imax * Vmax;
+      return (register_val);
     }
     else
     {
-      return(NULL);
+      return (NULL);
     }
   }
-  else{
-    return(0);
+  else
+  {
+    return (0);
   }
 }
-
 
 /*************************************************************
  * @fn          ACS71020_getPreactive()
@@ -240,33 +229,30 @@ float ACS71020_getPapparent()
  */
 float ACS71020_getPreactive()
 {
-  if(checkSPIhandle()==true)
+  if (checkSPIhandle() == true)
   {
     float register_val;
     uint16_t tempRegister_val;
     bool transferStatus = false;
     transmitBuffer[0] = PREACTIVE;
-    transferStatus = SPI_transfer(spiHandle , &spiTransaction);
-    if(transferStatus==true)
+    transferStatus = SPI_transfer(spiHandle, &spiTransaction);
+    if (transferStatus == true)
     {
-      tempRegister_val = recieveBuffer[1]<<8 | recieveBuffer[0];
-      tempRegister_val = tempRegister_val/pow(2,15);
-      register_val = tempRegister_val*Imax*Vmax;
-      return(register_val);
+      tempRegister_val = recieveBuffer[1] << 8 | recieveBuffer[0];
+      tempRegister_val = tempRegister_val / pow(2, 15);
+      register_val = tempRegister_val * Imax * Vmax;
+      return (register_val);
     }
     else
     {
-      return(NULL);
+      return (NULL);
     }
   }
   else
   {
-    return(0);
+    return (0);
   }
-
-
 }
-
 
 /********************************************************************
  * @fn          ACS71020_getPfactor()
@@ -279,40 +265,40 @@ float ACS71020_getPreactive()
  */
 float ACS71020_getPfactor()
 {
-  if(checkSPIhandle()==true)
+  if (checkSPIhandle() == true)
   {
     float register_val;
     bool transferStatus = false;
     uint16_t tempRegister_val;
-    uint8_t normalizing_Number= 0b00000111, negativeChecker =0b00000100;
+    uint8_t normalizing_Number = 0b00000111, negativeChecker = 0b00000100;
     transmitBuffer[0] = PFACTOR;
-    transferStatus = SPI_transfer(spiHandle , &spiTransaction);
-    if(transferStatus==true)
+    transferStatus = SPI_transfer(spiHandle, &spiTransaction);
+    if (transferStatus == true)
     {
-        tempRegister_val = recieveBuffer[1] & normalizing_Number;
-        if(tempRegister_val & negativeChecker == negativeChecker)
-        {
-            tempRegister_val = tempRegister_val <<8 | recieveBuffer[0];
-            register_val = (tempRegister_val/pow(2,9))*-1;
-        }
-        else
-        {
-            tempRegister_val = tempRegister_val <<8 | recieveBuffer[0];
-            register_val = (tempRegister_val/pow(2,9));
-        }
+      tempRegister_val = recieveBuffer[1] & normalizing_Number;
+      if (tempRegister_val & negativeChecker == negativeChecker)
+      {
+        tempRegister_val = tempRegister_val << 8 | recieveBuffer[0];
+        register_val = (tempRegister_val / pow(2, 9)) * -1;
+      }
+      else
+      {
+        tempRegister_val = tempRegister_val << 8 | recieveBuffer[0];
+        register_val = (tempRegister_val / pow(2, 9));
+      }
 
-        return register_val;
+      return register_val;
     }
     else
     {
-      return(NULL);
+      return (NULL);
     }
   }
-  else{
-    return(0);
+  else
+  {
+    return (0);
   }
 }
-
 
 /*******************************************************************************
  * @fn          ACS71020_getNumpstout()
@@ -326,33 +312,32 @@ float ACS71020_getPfactor()
  */
 uint16_t ACS71020_getNumpstout()
 {
-  if (checkSPIhandle()==true)
+  if (checkSPIhandle() == true)
   {
     uint16_t register_val;
     uint8_t normalizing_Number = 0b00000001;
     bool transferStatus = false;
     transmitBuffer[0] = NUMPSTOUT;
-    transferStatus = SPI_transfer(spiHandle , &spiTransaction);
-    if(transferStatus==true)
+    transferStatus = SPI_transfer(spiHandle, &spiTransaction);
+    if (transferStatus == true)
     {
-        /*
+      /*
          * normalizing_Number is used to get the correct bit and making other bits as zero.
          */
-      register_val= recieveBuffer[1] & normalizing_Number;
-      register_val= register_val<<8 | recieveBuffer[0];
-      return(register_val);
+      register_val = recieveBuffer[1] & normalizing_Number;
+      register_val = register_val << 8 | recieveBuffer[0];
+      return (register_val);
     }
     else
     {
-      return(NULL);
+      return (NULL);
     }
   }
-  else{
-    return(0);
+  else
+  {
+    return (0);
   }
-
 }
-
 
 /*********************************************************************
  * @fn          ACS71020_getIcodes()
@@ -366,40 +351,43 @@ uint16_t ACS71020_getNumpstout()
 
 float ACS71020_getVcodes()
 {
-  if(checkSPIhandle()==true){
+  if (checkSPIhandle() == true)
+  {
     float register_val;
     bool transferStatus = false;
     uint8_t normalizing_Number = 0b00000001;
     uint16_t tempRegister_val;
     transmitBuffer[0] = VCODES;
-    transferStatus = SPI_transfer(spiHandle , &spiTransaction);
-    if(transferStatus==true)
+    transferStatus = SPI_transfer(spiHandle, &spiTransaction);
+    if (transferStatus == true)
     {
-        tempRegister_val = recieveBuffer[2] & normalizing_Number;
+      tempRegister_val = recieveBuffer[2] & normalizing_Number;
 
-        /*
+      /*
          * If bit no. 17 = 0b1(1 in decimal), then output is negative
          */
-        if(tempRegister_val == 1){
-            tempRegister_val = tempRegister_val <<18 | recieveBuffer[1]<<8 | recieveBuffer[0];
-            register_val = (tempRegister_val/pow(2, 16))*Vmax*-1;
-        }
-        else{
-            tempRegister_val = tempRegister_val <<18 | recieveBuffer[1]<<8 | recieveBuffer[0];
-            register_val = (tempRegister_val/pow(2, 16))*Vmax;
-        }
-        return(register_val);
+      if (tempRegister_val == 1)
+      {
+        tempRegister_val = tempRegister_val << 18 | recieveBuffer[1] << 8 | recieveBuffer[0];
+        register_val = (tempRegister_val / pow(2, 16)) * Vmax * -1;
+      }
+      else
+      {
+        tempRegister_val = tempRegister_val << 18 | recieveBuffer[1] << 8 | recieveBuffer[0];
+        register_val = (tempRegister_val / pow(2, 16)) * Vmax;
+      }
+      return (register_val);
     }
     else
     {
-      return(NULL);
+      return (NULL);
     }
   }
-  else{
-    return(0);
+  else
+  {
+    return (0);
   }
 }
-
 
 /*********************************************************************
  * @fn          ACS71020_getIcodes()
@@ -413,42 +401,43 @@ float ACS71020_getVcodes()
 
 float ACS71020_getIcodes()
 {
-  if(checkSPIhandle()==true)
+  if (checkSPIhandle() == true)
   {
     float register_val;
     bool transferStatus = false;
     transmitBuffer[0] = ICODES;
     uint8_t normalizing_Number = 0b00000001;
     uint16_t tempRegister_val;
-    transferStatus = SPI_transfer(spiHandle , &spiTransaction);
-    if(transferStatus==true)
+    transferStatus = SPI_transfer(spiHandle, &spiTransaction);
+    if (transferStatus == true)
     {
-        tempRegister_val = recieveBuffer[2] & normalizing_Number;
+      tempRegister_val = recieveBuffer[2] & normalizing_Number;
 
-                /*
+      /*
                  * If bit no. 17 = 0b1(1 in decimal), then output is negative
                  */
-                if(tempRegister_val == 1){
-                    tempRegister_val = recieveBuffer[1]<<8 | recieveBuffer[0];
-                    register_val = (tempRegister_val/pow(2, 16))*Vmax*-1;
-                }
-                else{
-                    tempRegister_val = recieveBuffer[1]<<8 | recieveBuffer[0];
-                    register_val = (tempRegister_val/pow(2, 16))*Vmax;
-                }
-                return(register_val);
+      if (tempRegister_val == 1)
+      {
+        tempRegister_val = recieveBuffer[1] << 8 | recieveBuffer[0];
+        register_val = (tempRegister_val / pow(2, 16)) * Vmax * -1;
+      }
+      else
+      {
+        tempRegister_val = recieveBuffer[1] << 8 | recieveBuffer[0];
+        register_val = (tempRegister_val / pow(2, 16)) * Vmax;
+      }
+      return (register_val);
     }
     else
     {
-      return(NULL);
+      return (NULL);
     }
   }
   else
   {
-    return(0);
+    return (0);
   }
 }
-
 
 /********************************************************
  * @fn      checkSPIhandle()
@@ -462,7 +451,7 @@ float ACS71020_getIcodes()
 
 bool checkSPIhandle()
 {
-  if(spiHandle != NULL)
+  if (spiHandle != NULL)
   {
     return true;
   }
@@ -470,5 +459,4 @@ bool checkSPIhandle()
   {
     return false;
   }
-
 }
