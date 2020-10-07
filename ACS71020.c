@@ -160,17 +160,27 @@ float ACS71020_getPactive()
   {
     float register_val;
     bool transferStatus = false;
-    uint32_t tempRegister_val;
-    uint8_t normalizing_Number = 0b00000001;
+    uint16_t tempRegister_val;
+    uint8_t normalizing_Number = 0b00000001, negativeChecker = 0b00000001;
     transmitBuffer[0] = PACTIVE;
     transferStatus = SPI_transfer(spiHandle, &spiTransaction);
     if (transferStatus == true)
     {
-      tempRegister_val = recieveBuffer[2] & normalizing_Number;
-      tempRegister_val = tempRegister_val << 8 | recieveBuffer[1];
-      tempRegister_val = tempRegister_val << 8 | recieveBuffer[0];
-      register_val = (tempRegister_val / pow(2, 15)) * Vmax * Imax;
-      return (register_val);
+      tempRegister_val = transmitBuffer[2] & negativeChecker;
+      if (tempRegister_val == negativeChecker)
+      {
+        tempRegister_val = transmitBuffer[1] << 8 | transmitBuffer[0]; 
+        register_val = (tempRegister_val / pow(2, 15)) * Vmax * Imax * -1;
+        return (register_val );
+      }
+      else
+      {
+        tempRegister_val = transmitBuffer[1] << 8 | transmitBuffer[0]; 
+        register_val = (tempRegister_val / pow(2, 15)) * Vmax * Imax;3750
+        return (register_val );
+      }
+      
+
     }
     else
     {
