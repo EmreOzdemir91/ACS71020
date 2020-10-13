@@ -36,7 +36,12 @@ SPI_Transaction spiTransaction;
  *
  * @brief       Initializes handle
  *
- * @param       ACS71020_type, SPI Handle, Vmax(Full Scale Voltage)
+ * @param1      ACS71020_type -> ACS71020_15A or ACS71020_30A
+ *
+ * @param2      SPI_Handle -> SPI Handle which s returned when SPI_open() is called
+ *
+ * @param3      vmax -> Full scale Voltage
+ *
  *
  * @return      True if successful and false if unsuccessful
  */
@@ -93,7 +98,7 @@ float ACS71020_getIrms()
       tempRegister_val = recieveBuffer[3] & normalizing_Number;
       tempRegister_val = tempRegister_val << 8 | recieveBuffer[2];
       register_val = tempRegister_val;
-      register_val = register_val * Imax;
+      register_val = (register_val/pow(2,14)) * Imax;
       return (register_val);
     }
     else
@@ -131,7 +136,7 @@ float ACS71020_getVrms()
       tempRegister_val = recieveBuffer[1] & normalizing_Number;
       tempRegister_val = tempRegister_val << 8 | recieveBuffer[0];
       register_val = tempRegister_val;
-      register_val = register_val * Vmax;
+      register_val = (register_val/pow(2,15)) * Vmax;
       return (register_val);
     }
     else
