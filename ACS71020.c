@@ -92,7 +92,7 @@ float ACS71020_getIrms()
     {
       tempRegister_val = recieveBuffer[3] & normalizing_Number;
       tempRegister_val = tempRegister_val << 8 | recieveBuffer[2];
-      register_val = tempRegister_val / pow(2, 14);
+      register_val = tempRegister_val;
       register_val = register_val * Imax;
       return (register_val);
     }
@@ -130,7 +130,7 @@ float ACS71020_getVrms()
     {
       tempRegister_val = recieveBuffer[1] & normalizing_Number;
       tempRegister_val = tempRegister_val << 8 | recieveBuffer[0];
-      register_val = tempRegister_val / pow(2, 15);
+      register_val = tempRegister_val;
       register_val = register_val * Vmax;
       return (register_val);
     }
@@ -160,17 +160,27 @@ float ACS71020_getPactive()
   {
     float register_val;
     bool transferStatus = false;
-    uint32_t tempRegister_val;
-    uint8_t normalizing_Number = 0b00000001;
+    uint16_t tempRegister_val;
+    uint8_t negativeChecker = 0b00000001;
     transmitBuffer[0] = PACTIVE;
     transferStatus = SPI_transfer(spiHandle, &spiTransaction);
     if (transferStatus == true)
     {
-      tempRegister_val = recieveBuffer[2] & normalizing_Number;
-      tempRegister_val = tempRegister_val << 8 | recieveBuffer[1];
-      tempRegister_val = tempRegister_val << 8 | recieveBuffer[0];
-      register_val = (tempRegister_val / pow(2, 15)) * Vmax * Imax;
-      return (register_val);
+      tempRegister_val = recieveBuffer[2] & negativeChecker;
+      if (tempRegister_val == negativeChecker)
+      {
+        tempRegister_val = recieveBuffer[1] << 8 | recieveBuffer[0];
+        register_val = (tempRegister_val / pow(2, 15)) * Vmax * Imax * -1;
+        return (register_val );
+      }
+      else
+      {
+        tempRegister_val = recieveBuffer[1] << 8 | recieveBuffer[0];
+        register_val = (tempRegister_val / pow(2, 15)) * Vmax * Imax;
+        return (register_val );
+      }
+
+
     }
     else
     {
@@ -419,12 +429,12 @@ float ACS71020_getIcodes()
       if (tempRegister_val == 1)
       {
         tempRegister_val = recieveBuffer[1] << 8 | recieveBuffer[0];
-        register_val = (tempRegister_val / pow(2, 16)) * Vmax * -1;
+        register_val = (tempRegister_val / pow(2, 16)) * Imax * -1;
       }
       else
       {
         tempRegister_val = recieveBuffer[1] << 8 | recieveBuffer[0];
-        register_val = (tempRegister_val / pow(2, 16)) * Vmax;
+        register_val = (tempRegister_val / pow(2, 16)) * Imax;
       }
       return (register_val);
     }
