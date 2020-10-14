@@ -6,14 +6,12 @@
  */
 #include "ACS71020.h"
 #include "math.h"
-
-/*  MACRO :- MSG size which will be recieving from Slave or ACS71020  */
-#define MSGSIZE 4
-#define READ_COMMAND_ACS71020 1
+#include "stdio.h"
 
 /*****************************************
  * Local Functions */
 static bool checkSPIhandle();
+static void Initialize_Trim_Register(SPI_Handle spiHandle);
 
 /*****************************************
  * Local Variables
@@ -25,7 +23,7 @@ static bool checkSPIhandle();
    The next bit on the MOSI line is the read/write (RW) indicator.
    A high state indicates a Read and a low state indicates a Write.
 */
-static uint8_t transmitBuffer[2] = {0, READ_COMMAND_ACS71020};
+static uint8_t transmitBuffer[6] = {0, 0};
 static uint8_t recieveBuffer[MSGSIZE];
 static float Vmax, Imax;
 SPI_Handle spiHandle;
@@ -47,7 +45,7 @@ SPI_Transaction spiTransaction;
  */
 bool ACS71020_SPI_init(ACS71020_type type, SPI_Handle BusHandle, float vmax)
 {
-  spiTransaction.count = 4;
+  spiTransaction.count = 6;
   spiTransaction.txBuf = (void *)transmitBuffer;
   spiTransaction.rxBuf = (void *)recieveBuffer;
   switch (type)
@@ -70,6 +68,7 @@ bool ACS71020_SPI_init(ACS71020_type type, SPI_Handle BusHandle, float vmax)
   }
   else
   {
+    Initialize_Trim_Register(spiHandle);
     return (true);
   }
 }
@@ -92,6 +91,7 @@ float ACS71020_getIrms()
     uint16_t tempRegister_val;
     uint8_t normalizing_Number = 0b01111111;
     transmitBuffer[0] = VRMS_IRMS_ADDRESS;
+    transmitBuffer[1] = READ_COMMAND_ACS71020;
     transferStatus = SPI_transfer(spiHandle, &spiTransaction);
     if (transferStatus == true)
     {
@@ -130,6 +130,7 @@ float ACS71020_getVrms()
     uint16_t tempRegister_val;
     uint8_t normalizing_Number = 0b01111111;
     transmitBuffer[0] = VRMS_IRMS_ADDRESS;
+    transmitBuffer[1] = READ_COMMAND_ACS71020;
     transferStatus = SPI_transfer(spiHandle, &spiTransaction);
     if (transferStatus == true)
     {
@@ -168,6 +169,7 @@ float ACS71020_getPactive()
     uint16_t tempRegister_val;
     uint8_t negativeChecker = 0b00000001;
     transmitBuffer[0] = PACTIVE;
+    transmitBuffer[1] = READ_COMMAND_ACS71020;
     transferStatus = SPI_transfer(spiHandle, &spiTransaction);
     if (transferStatus == true)
     {
@@ -215,6 +217,7 @@ float ACS71020_getPapparent()
     uint16_t tempRegister_val;
     bool transferStatus = false;
     transmitBuffer[0] = PAPPARANT;
+    transmitBuffer[1] = READ_COMMAND_ACS71020;
     transferStatus = SPI_transfer(spiHandle, &spiTransaction);
     if (transferStatus == true)
     {
@@ -250,6 +253,7 @@ float ACS71020_getPreactive()
     uint16_t tempRegister_val;
     bool transferStatus = false;
     transmitBuffer[0] = PREACTIVE;
+    transmitBuffer[1] = READ_COMMAND_ACS71020;
     transferStatus = SPI_transfer(spiHandle, &spiTransaction);
     if (transferStatus == true)
     {
@@ -287,6 +291,7 @@ float ACS71020_getPfactor()
     uint16_t tempRegister_val;
     uint8_t normalizing_Number = 0b00000111, negativeChecker = 0b00000100;
     transmitBuffer[0] = PFACTOR;
+    transmitBuffer[1] = READ_COMMAND_ACS71020;
     transferStatus = SPI_transfer(spiHandle, &spiTransaction);
     if (transferStatus == true)
     {
@@ -333,6 +338,7 @@ uint16_t ACS71020_getNumpstout()
     uint8_t normalizing_Number = 0b00000001;
     bool transferStatus = false;
     transmitBuffer[0] = NUMPSTOUT;
+    transmitBuffer[1] = READ_COMMAND_ACS71020;
     transferStatus = SPI_transfer(spiHandle, &spiTransaction);
     if (transferStatus == true)
     {
@@ -373,6 +379,7 @@ float ACS71020_getVcodes()
     uint8_t normalizing_Number = 0b00000001;
     uint16_t tempRegister_val;
     transmitBuffer[0] = VCODES;
+    transmitBuffer[1] = READ_COMMAND_ACS71020;
     transferStatus = SPI_transfer(spiHandle, &spiTransaction);
     if (transferStatus == true)
     {
@@ -421,6 +428,7 @@ float ACS71020_getIcodes()
     float register_val;
     bool transferStatus = false;
     transmitBuffer[0] = ICODES;
+    transmitBuffer[1] = READ_COMMAND_ACS71020;
     uint8_t normalizing_Number = 0b00000001;
     uint16_t tempRegister_val;
     transferStatus = SPI_transfer(spiHandle, &spiTransaction);
@@ -474,4 +482,81 @@ bool checkSPIhandle()
   {
     return false;
   }
+}
+
+
+/***********************************************************
+ * @fn          Initialize_Trim_register
+ *
+ * @brief       Sets the offset
+ *
+ * @param       SPI_handle -> SPI Handle which is returned when SPI_open() is called
+ *
+ * @return      None
+ *
+ */
+void Initialize_Trim_Register(SPI_Handle spiHandle)
+{
+    bool transferStatus;
+
+    transmitBuffer[0] = CUSTOMER_ACCESS;
+    transmitBuffer[1] = WRITE_COMMAND_ACS71020;
+    transmitBuffer[2] = CUSTOMER_ACCESS_CODE & 0xFF;
+    transmitBuffer[3] = (CUSTOMER_ACCESS_CODE >> 8) & 0xFF;
+    transmitBuffer[4] = (CUSTOMER_ACCESS_CODE >> 16) & 0xFF;
+    transmitBuffer[5] = (CUSTOMER_ACCESS_CODE >>24) & 0xFF;
+
+    /*
+     * Access to the Shadow Memory
+     */
+    transferStatus = SPI_transfer(spiHandle, &spiTransaction);
+    if(transferStatus == true)
+    {
+        printf("Got the customer access");
+    }
+    else
+    {
+        printf("Customer Access Failed ");
+    }
+
+    /*
+     * Trimming Register Setting
+     */
+    transmitBuffer[0] = TRIMMING_REGISTER;
+    transmitBuffer[1] = WRITE_COMMAND_ACS71020;
+    transmitBuffer[2] = OFFSET_REGISTER_VALUE & 0xFF;
+    transmitBuffer[3] = (OFFSET_REGISTER_VALUE >> 8) & 0xFF;
+    transmitBuffer[4] = (OFFSET_REGISTER_VALUE >> 16) & 0xFF;
+    transmitBuffer[5] = (OFFSET_REGISTER_VALUE >>24) & 0xFF;
+
+    transferStatus = SPI_transfer(spiHandle, &spiTransaction);
+    if(transferStatus == true)
+    {
+        printf("Adjustment one done");
+    }
+    else
+    {
+        printf("Adjustment failed");
+    }
+
+    /*
+     * Setting Number of averages
+     */
+    transmitBuffer[0] = RMS_AVG_LEN;
+    transmitBuffer[1] = WRITE_COMMAND_ACS71020;
+    transmitBuffer[2] = RMS_CALCULATION_NUMBER_AVERAGES & 0xFF;
+    transmitBuffer[3] = (RMS_CALCULATION_NUMBER_AVERAGES >> 8) & 0xFF;
+    transmitBuffer[4] = (RMS_CALCULATION_NUMBER_AVERAGES >> 16) & 0xFF;
+    transmitBuffer[5] = (RMS_CALCULATION_NUMBER_AVERAGES >>24) & 0xFF;
+
+    transferStatus = SPI_transfer(spiHandle, &spiTransaction);
+    if(transferStatus == true)
+    {
+        printf("Adjustment two done");
+
+    }
+    else
+    {
+        printf("Adjustment failed");
+    }
 }

@@ -24,6 +24,19 @@ Addresses of registers
 #define VCODES 0x2A            // Instantaneous Voltage Measurement
 #define ICODES 0x2B            // Instantaneous Current Measurement
 
+
+#define TRIMMING_REGISTER 0x1B // Offset Adjustment
+#define RMS_AVG_LEN 0x1C       // Number of averages
+#define CUSTOMER_ACCESS 0x2F   // Customer Access
+
+#define MSGSIZE 4
+#define READ_COMMAND_ACS71020 1
+#define WRITE_COMMAND_ACS71020 0
+
+#define OFFSET_REGISTER_VALUE 2716176          // In Binary : 00000000 00101001 01110010 00010000
+#define RMS_CALCULATION_NUMBER_AVERAGES 130686 // In Binary : 00000000 00000001 11111110 01111110 In Decimal : 126 for first stage, 1020 for second stage
+
+#define CUSTOMER_ACCESS_CODE 0x4F70656E         // For writing on Offsets and Trim Registers
 /*
 @ACS71020_type User defined datatypes to select the Model of ACS71020
 */
