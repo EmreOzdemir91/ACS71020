@@ -28,7 +28,6 @@ static uint8_t recieveBuffer[MSGSIZE];
 static float Vmax, Imax;
 SPI_Handle spiHandle;
 SPI_Transaction spiTransaction;
-
 /*************************************************************************
  * @fn          ACS71020_SPI_init()
  *
@@ -45,7 +44,7 @@ SPI_Transaction spiTransaction;
  */
 bool ACS71020_SPI_init(ACS71020_type type, SPI_Handle BusHandle, float vmax)
 {
-  spiTransaction.count = 6;
+  spiTransaction.count = MSGSIZE;
   spiTransaction.txBuf = (void *)transmitBuffer;
   spiTransaction.rxBuf = (void *)recieveBuffer;
   switch (type)
@@ -524,10 +523,10 @@ void Initialize_Trim_Register(SPI_Handle spiHandle)
      */
     transmitBuffer[0] = TRIMMING_REGISTER;
     transmitBuffer[1] = WRITE_COMMAND_ACS71020;
-    transmitBuffer[2] = OFFSET_REGISTER_VALUE & 0xFF;
-    transmitBuffer[3] = (OFFSET_REGISTER_VALUE >> 8) & 0xFF;
-    transmitBuffer[4] = (OFFSET_REGISTER_VALUE >> 16) & 0xFF;
-    transmitBuffer[5] = (OFFSET_REGISTER_VALUE >>24) & 0xFF;
+    transmitBuffer[2] = 0b00010000;             //qvo_fine Value = 16
+    transmitBuffer[3] = 0b11001000;             //sns_fine Value = 100
+    transmitBuffer[4] = 0b00000000;             //
+    transmitBuffer[5] = 0b00000000;             //ECC = 0
 
     transferStatus = SPI_transfer(spiHandle, &spiTransaction);
     if(transferStatus == true)

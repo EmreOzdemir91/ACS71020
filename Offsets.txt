@@ -1,0 +1,41 @@
+0B:
+raw data: 00 20 00 00
+by fields:
+qvo_fine = 0
+sns_fine = 0
+crs_fine = 0
+iavgselen = 1
+
+0C:
+raw data: 00 00 00 3C
+by fields:
+rms_avg_1 = 60 (decimal)
+rms_avg_1 = 0
+
+0D:
+raw data: 00 1F E0 00
+by fields:
+pacc_trim = 0
+ichan_del_en = 0
+chan_del_sel = 0
+fault = 255 (decimal)
+fitdly = 0
+halfcycle_en = 0
+squarewave_en = 0
+
+0E:
+raw data: 00 08 20 00
+by fields:
+vevent_cycs = 0
+vadc_rate_set = 0
+overvreg = 32 (decimal)
+undervreg = 32 (decimal)
+delaycnt_sel = 0
+
+0F:
+raw data: 00 00 03 14
+by fields:
+i2c_slv_addr = 69 (decimal, or 0x45)
+i2c_slv_addr = 1
+dio_0_sel = 0
+dio_1_sel = 0

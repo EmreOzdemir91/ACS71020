@@ -33,7 +33,6 @@ Addresses of registers
 #define READ_COMMAND_ACS71020 1
 #define WRITE_COMMAND_ACS71020 0
 
-#define OFFSET_REGISTER_VALUE 2716176          // In Binary : 00000000 00101001 01110010 00010000
 #define RMS_CALCULATION_NUMBER_AVERAGES 130686 // In Binary : 00000000 00000001 11111110 01111110 In Decimal : 126 for first stage, 1020 for second stage
 
 #define CUSTOMER_ACCESS_CODE 0x4F70656E         // For writing on Offsets and Trim Registers
