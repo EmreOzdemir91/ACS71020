@@ -523,10 +523,10 @@ void Initialize_Trim_Register(SPI_Handle spiHandle)
      */
     transmitBuffer[0] = TRIMMING_REGISTER;
     transmitBuffer[1] = WRITE_COMMAND_ACS71020;
-    transmitBuffer[2] = 12833 & 0xFF;                   //qvo_fine Value = -35
-    transmitBuffer[3] = 12833 >> 8 & 0xFF;             //sns_fine Value = 100
-    transmitBuffer[4] = 12833 >> 16 0xFF;             //iavgselen = 1
-    transmitBuffer[5] = 0;                           //ECC = 0
+    transmitBuffer[2] = OFFSET_REGISTER_VALUE & 0xFF;
+    transmitBuffer[3] = (OFFSET_REGISTER_VALUE >> 8) & 0xFF;
+    transmitBuffer[4] = (OFFSET_REGISTER_VALUE >> 16) & 0xFF;
+    transmitBuffer[5] = (OFFSET_REGISTER_VALUE >>24) & 0xFF;
 
     transferStatus = SPI_transfer(spiHandle, &spiTransaction);
     if(transferStatus == true)
@@ -558,10 +558,19 @@ void Initialize_Trim_Register(SPI_Handle spiHandle)
     {
         printf("Adjustment failed");
     }
+
+    /*
+     * Clearing all the buffers
+     */
     transmitBuffer[0] = 0;
     transmitBuffer[1] = READ_COMMAND_ACS71020;
     transmitBuffer[2] = 0;
     transmitBuffer[3] = 0;
     transmitBuffer[4] = 0;
     transmitBuffer[5] = 0;
+
+    recieveBuffer[0] = 0;
+    recieveBuffer[1] = 0;
+    recieveBuffer[2] = 0;
+    recieveBuffer[3] = 0;
 }
