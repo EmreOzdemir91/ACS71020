@@ -40,7 +40,7 @@ SPI_Transaction spiTransaction;
  * @param3      vmax -> Full scale Voltage
  *
  *
- * @return      True if successful and false if unsuccessful
+ * @return      Boolean
  */
 bool ACS71020_SPI_init(ACS71020_type type, SPI_Handle BusHandle, float vmax)
 {
@@ -79,7 +79,7 @@ bool ACS71020_SPI_init(ACS71020_type type, SPI_Handle BusHandle, float vmax)
  *
  * @param       None
  *
- * @return      Float Value
+ * @return      Float
  */
 float ACS71020_getIrms()
 {
@@ -118,7 +118,7 @@ float ACS71020_getIrms()
  *
  * @param       None
  *
- * @return      Float Value
+ * @return      Float
  */
 float ACS71020_getVrms()
 {
@@ -136,7 +136,6 @@ float ACS71020_getVrms()
       tempRegister_val = recieveBuffer[1] & normalizing_Number;
       tempRegister_val = tempRegister_val << 8 | recieveBuffer[0];
       register_val = tempRegister_val;
-      printf("%f", register_val);       //For testing purpose only
       register_val = (register_val/pow(2,15)) * Vmax;
       return (register_val);
     }
@@ -158,7 +157,7 @@ float ACS71020_getVrms()
  *
  * @param       None
  *
- * @return      Float Value
+ * @return      Float
  */
 float ACS71020_getPactive()
 {
@@ -207,7 +206,7 @@ float ACS71020_getPactive()
  *
  * @param       None
  *
- * @return      Float Value
+ * @return      Float
  */
 float ACS71020_getPapparent()
 {
@@ -243,7 +242,7 @@ float ACS71020_getPapparent()
  *
  * @param       None
  *
- * @return      Float Value
+ * @return      Float
  */
 float ACS71020_getPreactive()
 {
@@ -280,7 +279,7 @@ float ACS71020_getPreactive()
  *
  * @param       None
  *
- * @returns     Float Value
+ * @returns     Float
  */
 float ACS71020_getPfactor()
 {
@@ -469,7 +468,7 @@ float ACS71020_getIcodes()
  *
  * @param   None
  *
- * @return  true if present, false if not present
+ * @return  Boolean
  */
 
 bool checkSPIhandle()
@@ -524,10 +523,10 @@ void Initialize_Trim_Register(SPI_Handle spiHandle)
      */
     transmitBuffer[0] = TRIMMING_REGISTER;
     transmitBuffer[1] = WRITE_COMMAND_ACS71020;
-    transmitBuffer[2] = 0b00100011;             //qvo_fine Value = -35
-    transmitBuffer[3] = 0b11001001;             //sns_fine Value = 100
-    transmitBuffer[4] = 0b00010000;             //iavgselen = 1
-    transmitBuffer[5] = 0b00000000;             //ECC = 0
+    transmitBuffer[2] = 12833 & 0xFF;                   //qvo_fine Value = -35
+    transmitBuffer[3] = 12833 >> 8 & 0xFF;             //sns_fine Value = 100
+    transmitBuffer[4] = 12833 >> 16 0xFF;             //iavgselen = 1
+    transmitBuffer[5] = 0;                           //ECC = 0
 
     transferStatus = SPI_transfer(spiHandle, &spiTransaction);
     if(transferStatus == true)
@@ -559,4 +558,10 @@ void Initialize_Trim_Register(SPI_Handle spiHandle)
     {
         printf("Adjustment failed");
     }
+    transmitBuffer[0] = 0;
+    transmitBuffer[1] = READ_COMMAND_ACS71020;
+    transmitBuffer[2] = 0;
+    transmitBuffer[3] = 0;
+    transmitBuffer[4] = 0;
+    transmitBuffer[5] = 0;
 }
