@@ -44,7 +44,7 @@ SPI_Transaction spiTransaction;
  */
 bool ACS71020_SPI_init(ACS71020_type type, SPI_Handle BusHandle, float vmax)
 {
-  spiTransaction.count = MSGSIZE;
+  spiTransaction.count = 6;
   spiTransaction.txBuf = (void *)transmitBuffer;
   spiTransaction.rxBuf = (void *)recieveBuffer;
   switch (type)
@@ -136,6 +136,7 @@ float ACS71020_getVrms()
       tempRegister_val = recieveBuffer[1] & normalizing_Number;
       tempRegister_val = tempRegister_val << 8 | recieveBuffer[0];
       register_val = tempRegister_val;
+      printf("%f", register_val);       //For testing purpose only
       register_val = (register_val/pow(2,15)) * Vmax;
       return (register_val);
     }
@@ -523,9 +524,9 @@ void Initialize_Trim_Register(SPI_Handle spiHandle)
      */
     transmitBuffer[0] = TRIMMING_REGISTER;
     transmitBuffer[1] = WRITE_COMMAND_ACS71020;
-    transmitBuffer[2] = 0b00010000;             //qvo_fine Value = 16
-    transmitBuffer[3] = 0b11001000;             //sns_fine Value = 100
-    transmitBuffer[4] = 0b00000000;             //
+    transmitBuffer[2] = 0b00100011;             //qvo_fine Value = -35
+    transmitBuffer[3] = 0b11001001;             //sns_fine Value = 100
+    transmitBuffer[4] = 0b00010000;             //iavgselen = 1
     transmitBuffer[5] = 0b00000000;             //ECC = 0
 
     transferStatus = SPI_transfer(spiHandle, &spiTransaction);
