@@ -7,6 +7,7 @@
 
 #ifndef APPLICATION_ACS71020_ACS71020_H_
 #define APPLICATION_ACS71020_ACS71020_H_
+
 //Invoking SPI Library
 #include <ti/drivers/SPI.h>
 
@@ -38,6 +39,8 @@ Addresses of registers
 
 
 #define CUSTOMER_ACCESS_CODE 0x4F70656E         // For writing on Offsets and Trim Registers
+
+#define DELTA_V_IN_MAX 275          // As per the datasheet(Page No 6) - Comment just for testing purpose
 /*
 @ACS71020_type User defined datatypes to select the Model of ACS71020
 */

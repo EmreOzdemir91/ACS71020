@@ -102,7 +102,7 @@ float ACS71020_getIrms()
     }
     else
     {
-      return (NULL);
+      return (0.01);
     }
   }
   else
@@ -135,13 +135,12 @@ float ACS71020_getVrms()
     {
       tempRegister_val = recieveBuffer[1] & normalizing_Number;
       tempRegister_val = tempRegister_val << 8 | recieveBuffer[0];
-      register_val = tempRegister_val;
-      register_val = (register_val/pow(2,15)) * Vmax;
+      register_val = tempRegister_val * pow(2,-15) * DELTA_V_IN_MAX;
       return (register_val);
     }
     else
     {
-      return (NULL);
+      return (0.01);
     }
   }
   else
@@ -190,7 +189,7 @@ float ACS71020_getPactive()
     }
     else
     {
-      return (NULL);
+      return (0.01);
     }
   }
   else
@@ -226,7 +225,7 @@ float ACS71020_getPapparent()
     }
     else
     {
-      return (NULL);
+      return (0.01);
     }
   }
   else
@@ -263,7 +262,7 @@ float ACS71020_getPreactive()
     }
     else
     {
-      return (NULL);
+      return (0.01);
     }
   }
   else
@@ -310,7 +309,7 @@ float ACS71020_getPfactor()
     }
     else
     {
-      return (NULL);
+      return (0.01);
     }
   }
   else
@@ -350,7 +349,7 @@ uint16_t ACS71020_getNumpstout()
     }
     else
     {
-      return (NULL);
+      return (0.01);
     }
   }
   else
@@ -389,19 +388,19 @@ float ACS71020_getVcodes()
          */
       if (tempRegister_val == 1)
       {
-        tempRegister_val = tempRegister_val << 18 | recieveBuffer[1] << 8 | recieveBuffer[0];
+        tempRegister_val = recieveBuffer[1] << 8 | recieveBuffer[0];
         register_val = (tempRegister_val / pow(2, 16)) * Vmax * -1;
       }
       else
       {
-        tempRegister_val = tempRegister_val << 18 | recieveBuffer[1] << 8 | recieveBuffer[0];
+        tempRegister_val = recieveBuffer[1] << 8 | recieveBuffer[0];
         register_val = (tempRegister_val / pow(2, 16)) * Vmax;
       }
       return (register_val);
     }
     else
     {
-      return (NULL);
+      return (0.01);
     }
   }
   else
@@ -452,7 +451,7 @@ float ACS71020_getIcodes()
     }
     else
     {
-      return (NULL);
+      return (0.01);
     }
   }
   else
