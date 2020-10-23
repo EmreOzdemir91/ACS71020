@@ -60,5 +60,6 @@ uint16_t ACS71020_getNumpstout();
 float ACS71020_getVcodes();
 float ACS71020_getIcodes();
 bool ACS71020_SPI_init(ACS71020_type type, SPI_Handle BusHandle, float vmax);
+bool ACS71020_SPI_Test();
 
 #endif /* APPLICATION_ACS71020_ACS71020_H_ */

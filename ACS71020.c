@@ -573,3 +573,35 @@ void Initialize_Trim_Register(SPI_Handle spiHandle)
     recieveBuffer[2] = 0;
     recieveBuffer[3] = 0;
 }
+
+/********************************************************
+ * @fn          ACS710210_SPI_Test()
+ *
+ * @brief       Checks if communication/transaction is executing.
+ *
+ * @param       None
+ *
+ * @return     bool
+ */
+bool ACS71020_SPI_Test()
+{
+    bool transferStatus;
+    transmitBuffer[0] = TRIMMING_REGISTER << 2 | READ_COMMAND_ACS71020;
+    transferStatus = SPI_transfer(spiHandle, &spiTransaction);
+    if (transferStatus)
+    {
+        if(recieveBuffer[0] == OFFSET_REGISTER_VALUE & 0xFF)
+        {
+            return (true);
+
+        }
+        else
+        {
+            return (false);
+        }
+    }
+    else
+    {
+        return (false);
+    }
+}
