@@ -586,7 +586,8 @@ void Initialize_Trim_Register(SPI_Handle spiHandle)
 bool ACS71020_SPI_Test()
 {
     bool transferStatus;
-    transmitBuffer[0] = TRIMMING_REGISTER << 2 | READ_COMMAND_ACS71020;
+    transmitBuffer[0] = TRIMMING_REGISTER;
+    transmitBuffer[1] =  READ_COMMAND_ACS71020;
     transferStatus = SPI_transfer(spiHandle, &spiTransaction);
     if (transferStatus)
     {
